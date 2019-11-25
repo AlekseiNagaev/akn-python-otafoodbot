@@ -15,13 +15,18 @@ from telegram.utils.helpers import escape_markdown
 import datetime
 import urllib.request, json
 from functools import wraps
+from configparser import ConfigParser
+
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s\n',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
-TOKEN = str(os.environ['TOKEN'])
-ADMINS = [int(os.environ['USERID'])]
+parser = ConfigParser()
+parser.read('config.ini')
+TOKEN = parser.get('TOKENS', 'TOKEN')#str(os.environ['TOKEN'])
+ADMINS = [int(parser.get('TOKENS', 'ADMINS'))]#[int(os.environ['USERID'])]
 
 fazer = 'https://www.fazerfoodco.fi/modules/json/json/Index?costNumber='
 lan = '&language='
@@ -54,7 +59,7 @@ def typing(func):
             return func(update, context,  *args, **kwargs)
         return command_func
 
-#
+@restricted
 def start(update, context):
     msg = 'Choose your language:'
     btns = [[InlineKeyboardButton('EN', callback_data='en'),InlineKeyboardButton('FI', callback_data='fi')]]
@@ -78,11 +83,11 @@ def load_food():
             data = json.load(f)
     return data
 
-@typing
+#@typing
 def ch1_en(update, context):
     query = update.callback_query
     bot = context.bot
-    msg = 'Choose an Otaniemi student restaurant:'
+    msg = 'Otaniemi student restaurants:'
     try:
         btns = []
         for key in food.keys():
@@ -119,13 +124,15 @@ def js_en(update, context):
     d2 = datetime.datetime.strftime(d,'%d %b %Y')
     msg += '%s\n' % d2
     #print(msg)
-    if data['MenusForDays'][0]['LunchTime'] is not None:
-        msg += 'Open %s\n' % data['MenusForDays'][0]['LunchTime']
+    #print(data['MenusForDays'][0]['LunchTime'])
+    lt = data['MenusForDays'][0]['LunchTime']
+    if lt is None or lt is 'Closed':
+        msg += 'Closed today\n'
+    else:
+        msg += 'Open %s\n' % lt
         for x in data['MenusForDays'][0]['SetMenus']:
             for y in x['Components']:
                 print(y)
-    else:
-        msg += 'Closed today\n'
     #print('Prices: ' + data['MenusForDays'][0]['SetMenus'][i3]['Price'])
 
     #print(msg)
@@ -137,7 +144,8 @@ def js_en(update, context):
         message_id=query.message.message_id,
         text=msg,
         parse_mode=ParseMode.HTML,
-        reply_markup=reply_markup
+        reply_markup=reply_markup,
+        disable_web_page_preview=1
     )
     return FIRST
 
@@ -156,13 +164,14 @@ def ch1_fi(update, context):
             chat_id=query.message.chat_id,
             message_id=query.message.message_id,
             text=msg,
-            reply_markup=reply_markup
+            reply_markup=reply_markup,
+            disable_web_page_preview=1
         )
     except:
         print('Sad panda')
     return SECOND
 
-@typing
+#@typing
 def js_fi(update, context):
     query = update.callback_query
     bot = context.bot
@@ -181,13 +190,14 @@ def js_fi(update, context):
     d2 = datetime.datetime.strftime(d,'%d %b %Y')
     msg += '%s\n' % d2
     #print(msg)
-    if data['MenusForDays'][0]['LunchTime'] is not None:
-        msg += 'Avaa %s\n' % data['MenusForDays'][0]['LunchTime']
+    lt = data['MenusForDays'][0]['LunchTime']
+    if lt is None or lt is 'Closed':
+        msg += 'Suljettu tanaan\n'
+    else:
+        msg += 'Avaa %s\n' % lt
         for x in data['MenusForDays'][0]['SetMenus']:
             for y in x['Components']:
                 print(y)
-    else:
-        msg += 'Suljettu tanaan\n'
 
     btnb = InlineKeyboardButton('Back', callback_data='fi')
     btns.append([btnb])
@@ -197,7 +207,8 @@ def js_fi(update, context):
         message_id=query.message.message_id,
         text=msg,
         parse_mode=ParseMode.HTML,
-        reply_markup=reply_markup
+        reply_markup=reply_markup,
+        disable_web_page_preview=1
     )
     return FIRST
 
@@ -208,6 +219,9 @@ def button(update, context):
 
 def help(update, context):
     update.message.reply_text("Use /start to use this bot.")
+
+def feedback(update, context):
+    context.bot.send_message(chat_id=ADMINS[0], text=context.args[0])#update.message.text)
 
 def inlinequery(update, context):
     """Handle the inline query."""
@@ -240,7 +254,7 @@ def error(update, context):
 def main():
     persisto = PicklePersistence(filename='persisto')
     updater = Updater(TOKEN,persistence=persisto,use_context=True)
-    print('My PID is:', os.getpid())
+    #print('My PID is:', os.getpid())
     # Get the dispa tcher to register handlers
     dp = updater.dispatcher
 
@@ -265,6 +279,7 @@ def main():
         sys.exit()
 
     dp.add_handler(CommandHandler('stop', stop))
+    dp.add_handler(CommandHandler('fb', feedback))
     #dp.add_handler(CallbackQueryHandler(button,pattern='^@'))
     dp.add_handler(CommandHandler('help', help))
     dp.add_handler(InlineQueryHandler(inlinequery))
