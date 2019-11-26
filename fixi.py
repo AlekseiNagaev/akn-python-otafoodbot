@@ -18,10 +18,12 @@ def del_n(data):
         for j in range(b):
             data['SetMenus'][i]['Components'][j] = data['SetMenus'][i]['Components'][j].replace('\n','')
     return data
-    
+
 def abloc(data):
-    data['SetMenus'][0]['Name'] = 'Lunch'
-    data['SetMenus'][2]['Name'] = "Chef's Kitchen"
+    if data['SetMenus'][0]['Name'] is None:
+         data['SetMenus'][0]['Name'] = 'Vegetarian Lunch'
+    if data['SetMenus'][2]['Name'] == "Chef´s Kitchen Pizza":
+        data['SetMenus'][2]['Name'] = "Chef's Kitchen"
     data = del_n(data)
     return data
 

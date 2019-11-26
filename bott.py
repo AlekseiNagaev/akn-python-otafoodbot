@@ -29,14 +29,31 @@ TOKEN = parser.get('TOKENS', 'TOKEN')#str(os.environ['TOKEN'])
 ADMINS = [int(parser.get('TOKENS', 'ADMINS'))]#[int(os.environ['USERID'])]
 
 fazer = 'https://www.fazerfoodco.fi/modules/json/json/Index?costNumber='
-lan = '&language='
+lang = '&language='
 food = {
-            'dipoli':      ['Dipoli',fazer + '3101' + lan],
-            'alvari':      ['Alvari',fazer + '0190' + lan],
-            'silinteri':   ['Silinteri',fazer + '019002' + lan],
-            'abloc':       ['A Bloc',fazer + '3087' + lan],
-            'tuas':        ['TUAS',fazer + '0199' + lan]
+            'dipoli':      ['Dipoli',fazer + '3101' + lang],
+            'alvari':      ['Alvari',fazer + '0190' + lang],
+            'silinteri':   ['Silinteri',fazer + '019002' + lang],
+            'abloc':       ['A Bloc',fazer + '3087' + lang],
+            'tuas':        ['TUAS',fazer + '0199' + lang]
             }
+open = {
+            'en': 'Open ',
+            'fi': 'Avaa '
+        }
+closed = {
+            'en': 'Closed today',
+            'fi': 'Suljettu tanaan'
+        }
+ch1m = {
+            'en': 'Otaniemi student restaurants:',
+            'fi': 'Otaniemen opiskeljaravintolat:'
+        }
+btnm = {
+        'en': '< Back',
+        'fi': '< Takaisin'
+        }
+#ch1m = {}
 
 FIRST, SECOND = range(2)
 FB = 1
@@ -89,8 +106,8 @@ def load_food():
             data = json.load(f)
     return data
 
-def load_fazer_en(name):
-    url = food[name][1] + 'en'
+def load_fazer(key,lan):
+    url = food[key][1] + lan
     with urllib.request.urlopen(url) as url1:
         data = json.loads(url1.read().decode())
 
@@ -100,11 +117,11 @@ def load_fazer_en(name):
     d2 = datetime.datetime.strftime(d,'%d %b %Y')
     msg += '%s\n' % d2
     lt = data['LunchTime']
-    if lt is None or lt is 'Closed':
-        msg += 'Closed today\n'
+    if lt is None or lt is 'Closed' or lt is 'Suljettu':
+        msg += '%s\n' % closed[lan]
     else:
-        msg += 'Open %s\n' % lt
-        data = fixi.choice(name, data)
+        msg += '%s %s\n' % (open[lan],lt)
+        data = fixi.choice(key, data)
         for x in data['SetMenus']:
             msg+="<b>%s</b>\n" % x["Name"]
             for y in x['Components']:
@@ -112,44 +129,47 @@ def load_fazer_en(name):
     return msg
 # Bot commands
 # CHOICE conversaton
-@restricted
+#@restricted
 def start(update, context):
     """
-    Starts conversation with the bot.
-    This is 0th state of the CHOICE conversation.
+    This is the start of the CHOICE conversation.
     Returns language choice menu and switches conversation to next state.
 
     Returns:
-        FIRST: 1st state of the CHOICE conversation
+        FIRST (int): 1st state of the CHOICE conversation.
     """
     msg = 'Choose your language:'
     btns = [
             [
-            InlineKeyboardButton('EN', callback_data='en')#,
-            #InlineKeyboardButton('FI', callback_data='fi')
+            InlineKeyboardButton('EN', callback_data='en'),
+            InlineKeyboardButton('FI', callback_data='fi')
             ]
             ]
     reply_markup = InlineKeyboardMarkup(btns)
     update.message.reply_text(msg, reply_markup=reply_markup)
+
     return FIRST
 
-def ch1_en(update, context):
+def choice1(update, context):
     """
-    EN version of the 1st CHOICE convesation.
-    Provides list of student restaurant choices
+    The 1st CHOICE convesation.
+    Provides list of student restaurants
     Returns:
-        SECOND: 2nd state of the CHOICE conversation.
+        SECOND: 2nd state of the CHOICE conversation, the specific restaurant.
     """
     query = update.callback_query
     bot = context.bot
+    lan = context.user_data['lan']
     cmd = str(query.data)
-    print(cmd)
-    context.user_data['lan'] = cmd
-    msg = 'Otaniemi student restaurants:'
+    if lan != cmd:
+        context.user_data['lan'] = cmd
+        lan = context.user_data['lan']
+
+    msg = ch1m[lan]
     try:
         btns = []
         for key in food.keys():
-            s = 'en@' + key
+            s = key
             btn = InlineKeyboardButton(food[key][0], callback_data=s)
             btns.append([btn])
         reply_markup = InlineKeyboardMarkup(btns)
@@ -161,11 +181,12 @@ def ch1_en(update, context):
         )
     except:
         print('Sad panda')
+
     return SECOND
 
-def js_en(update, context):
+def result(update, context):
     """
-    EN version of the 2nd CHOICE convesation.
+    The 2nd CHOICE convesation.
     Provides chosen restaurant's lunch time and menu.
     Returns back to restaurant list (FIRST state) on BACK button click.
     Returns:
@@ -173,79 +194,16 @@ def js_en(update, context):
     """
     query = update.callback_query
     bot = context.bot
-    cmd = str(query.data)
-    name = re.split('@',cmd)[1]
-     #datetime.datetime.today().weekday()
+    key = str(query.data)
+    lan = context.user_data['lan']
+    #datetime.datetime.today().weekday()
     #print(url)
-    msg = load_fazer_en(name)
+    msg = load_fazer(key,lan)
     #print('Prices: ' + data['MenusForDays'][0]['SetMenus'][i3]['Price'])
-
     #print(msg)
     btns = []
-    btnb = InlineKeyboardButton('Back', callback_data='en')
-    btns.append([btnb])
-    reply_markup = InlineKeyboardMarkup(btns)
-    bot.edit_message_text(
-        chat_id=query.message.chat_id,
-        message_id=query.message.message_id,
-        text=msg,
-        parse_mode=ParseMode.HTML,
-        reply_markup=reply_markup,
-        disable_web_page_preview=1
-    )
-    return FIRST
-
-def ch1_fi(update, context):
-    query = update.callback_query
-    bot = context.bot
-    msg = 'Otaniemen opiskeljaravintolat:'
-    try:
-        btns = []
-        for key in food.keys():
-            str = 'fi@' + key
-            btn = InlineKeyboardButton(food[key][0], callback_data=str)
-            btns.append([btn])
-        reply_markup = InlineKeyboardMarkup(btns)
-        bot.edit_message_text(
-            chat_id=query.message.chat_id,
-            message_id=query.message.message_id,
-            text=msg,
-            reply_markup=reply_markup,
-            disable_web_page_preview=1
-        )
-    except:
-        print('Sad panda')
-    return SECOND
-
-#@typing
-def js_fi(update, context):
-    query = update.callback_query
-    bot = context.bot
-    cmd = str(query.data)
-    s = re.split('@',cmd)[1]
-    x = 0#datetime.datetime.today().weekday()
-    url = food[s][1] + 'fi'
-    with urllib.request.urlopen(url) as url1:
-        data = json.loads(url1.read().decode())
-
-    btns = []
-
-    msg = '<a href="%s">%s</a>\n' % (data['RestaurantUrl'],data["RestaurantName"])
-    #print(msg)
-    d = datetime.datetime.strptime(data['MenusForDays'][0]['Date'],'%Y-%m-%dT%H:%M:%S%z')
-    d2 = datetime.datetime.strftime(d,'%d %b %Y')
-    msg += '%s\n' % d2
-    #print(msg)
-    lt = data['MenusForDays'][0]['LunchTime']
-    if lt is None or lt is 'Closed':
-        msg += 'Suljettu tanaan\n'
-    else:
-        msg += 'Avaa %s\n' % lt
-        for x in data['MenusForDays'][0]['SetMenus']:
-            for y in x['Components']:
-                print(y)
-
-    btnb = InlineKeyboardButton('Back', callback_data='fi')
+    s = btnm[lan]
+    btnb = InlineKeyboardButton(s,callback_data=lan)
     btns.append([btnb])
     reply_markup = InlineKeyboardMarkup(btns)
     bot.edit_message_text(
@@ -322,10 +280,8 @@ def main():
     conv1 = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
-            FIRST: [CallbackQueryHandler(ch1_en, pattern='^en'),
-                    CallbackQueryHandler(ch1_fi, pattern='^fi')],
-            SECOND: [CallbackQueryHandler(js_en, pattern='^en@'),
-                    CallbackQueryHandler(js_fi, pattern='^fi@')]
+            FIRST: [CallbackQueryHandler(choice1)],
+            SECOND: [CallbackQueryHandler(result)]
         },
         fallbacks=[CommandHandler('start', start)],
         persistent=True,
