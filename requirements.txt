@@ -1,0 +1,5 @@
+python-telegram-bot>=12.2.0
+uuid>=1.30
+logging>=0.4.9.6
+functools>=0.5
+configparser>=4.0.2
