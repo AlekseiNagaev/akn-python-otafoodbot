@@ -8,7 +8,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram import InputTextMessageContent, InlineQueryResultArticle
 #from telegram import ReplyKeyboardMarkup
 from telegram import ChatAction, ParseMode
-from telegram.ext import Updater
+from telegram.ext import Updater, Filters
 from telegram.ext import CommandHandler, CallbackQueryHandler, ConversationHandler, InlineQueryHandler, MessageHandler
 from telegram.ext import PicklePersistence
 from telegram.utils.helpers import escape_markdown
@@ -16,7 +16,7 @@ import datetime
 import urllib.request, json
 from functools import wraps
 from configparser import ConfigParser
-
+import fixi
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s\n',
                     level=logging.INFO)
@@ -39,9 +39,12 @@ food = {
             }
 
 FIRST, SECOND = range(2)
-
-# Wrap functions for admin prot3ction and typing dexoration
+FB = 1
+# Wrap functions for admin protection and typing decoration
 def restricted(func):
+    """
+    Wrapper function that restricts certain commands to ADMIN users.
+    """
     @wraps(func)
     def wrapped(update, context, *args, **kwargs):
         user_id = update.effective_user.id
@@ -53,21 +56,24 @@ def restricted(func):
     return wrapped
 
 def typing(func):
-        @wraps(func)
-        def command_func(update, context, *args, **kwargs):
-            context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.TYPING)
-            return func(update, context,  *args, **kwargs)
-        return command_func
+    """
+    Function wrapper that makes the bot send typing action while processing command.
+    """
+    @wraps(func)
+    def command_func(update, context, *args, **kwargs):
+        context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.TYPING)
+        return func(update, context,  *args, **kwargs)
+    return command_func
 
-@restricted
-def start(update, context):
-    msg = 'Choose your language:'
-    btns = [[InlineKeyboardButton('EN', callback_data='en'),InlineKeyboardButton('FI', callback_data='fi')]]
-    reply_markup = InlineKeyboardMarkup(btns)
-    update.message.reply_text(msg, reply_markup=reply_markup)
-    return FIRST
+# Additional functions
 
 def load_food():
+    """
+    [UNUSED]
+    Loads lunch menu from .json file.
+    Returns:
+        data (json): data from the restaurant
+    """
     filename = {
                 'Dipoli':       'dipoli',
                 'Alvari':       'alvari',
@@ -83,16 +89,68 @@ def load_food():
             data = json.load(f)
     return data
 
-#@typing
+def load_fazer_en(name):
+    url = food[name][1] + 'en'
+    with urllib.request.urlopen(url) as url1:
+        data = json.loads(url1.read().decode())
+
+    msg = '<a href="%s">%s</a>\n' % (data['RestaurantUrl'],data["RestaurantName"])
+    data = data['MenusForDays'][0]
+    d = datetime.datetime.strptime(data['Date'],'%Y-%m-%dT%H:%M:%S%z')
+    d2 = datetime.datetime.strftime(d,'%d %b %Y')
+    msg += '%s\n' % d2
+    lt = data['LunchTime']
+    if lt is None or lt is 'Closed':
+        msg += 'Closed today\n'
+    else:
+        msg += 'Open %s\n' % lt
+        data = fixi.choice(name, data)
+        for x in data['SetMenus']:
+            msg+="<b>%s</b>\n" % x["Name"]
+            for y in x['Components']:
+                msg+="\t\t\t%s\n" % y
+    return msg
+# Bot commands
+# CHOICE conversaton
+@restricted
+def start(update, context):
+    """
+    Starts conversation with the bot.
+    This is 0th state of the CHOICE conversation.
+    Returns language choice menu and switches conversation to next state.
+
+    Returns:
+        FIRST: 1st state of the CHOICE conversation
+    """
+    msg = 'Choose your language:'
+    btns = [
+            [
+            InlineKeyboardButton('EN', callback_data='en')#,
+            #InlineKeyboardButton('FI', callback_data='fi')
+            ]
+            ]
+    reply_markup = InlineKeyboardMarkup(btns)
+    update.message.reply_text(msg, reply_markup=reply_markup)
+    return FIRST
+
 def ch1_en(update, context):
+    """
+    EN version of the 1st CHOICE convesation.
+    Provides list of student restaurant choices
+    Returns:
+        SECOND: 2nd state of the CHOICE conversation.
+    """
     query = update.callback_query
     bot = context.bot
+    cmd = str(query.data)
+    print(cmd)
+    context.user_data['lan'] = cmd
     msg = 'Otaniemi student restaurants:'
     try:
         btns = []
         for key in food.keys():
-            str = 'en@' + key
-            btn = InlineKeyboardButton(food[key][0], callback_data=str)
+            s = 'en@' + key
+            btn = InlineKeyboardButton(food[key][0], callback_data=s)
             btns.append([btn])
         reply_markup = InlineKeyboardMarkup(btns)
         bot.edit_message_text(
@@ -106,36 +164,24 @@ def ch1_en(update, context):
     return SECOND
 
 def js_en(update, context):
+    """
+    EN version of the 2nd CHOICE convesation.
+    Provides chosen restaurant's lunch time and menu.
+    Returns back to restaurant list (FIRST state) on BACK button click.
+    Returns:
+        FIRST: 1st state of the CHOICE conversation.
+    """
     query = update.callback_query
     bot = context.bot
     cmd = str(query.data)
-    s = re.split('@',cmd)[1]
-    x = 0#datetime.datetime.today().weekday()
-    url = food[s][1] + 'en'
+    name = re.split('@',cmd)[1]
+     #datetime.datetime.today().weekday()
     #print(url)
-    with urllib.request.urlopen(url) as url1:
-        data = json.loads(url1.read().decode())
-
-    btns = []
-
-    msg = '<a href="%s">%s</a>\n' % (data['RestaurantUrl'],data["RestaurantName"])
-    #print(msg)
-    d = datetime.datetime.strptime(data['MenusForDays'][0]['Date'],'%Y-%m-%dT%H:%M:%S%z')
-    d2 = datetime.datetime.strftime(d,'%d %b %Y')
-    msg += '%s\n' % d2
-    #print(msg)
-    #print(data['MenusForDays'][0]['LunchTime'])
-    lt = data['MenusForDays'][0]['LunchTime']
-    if lt is None or lt is 'Closed':
-        msg += 'Closed today\n'
-    else:
-        msg += 'Open %s\n' % lt
-        for x in data['MenusForDays'][0]['SetMenus']:
-            for y in x['Components']:
-                print(y)
+    msg = load_fazer_en(name)
     #print('Prices: ' + data['MenusForDays'][0]['SetMenus'][i3]['Price'])
 
     #print(msg)
+    btns = []
     btnb = InlineKeyboardButton('Back', callback_data='en')
     btns.append([btnb])
     reply_markup = InlineKeyboardMarkup(btns)
@@ -212,17 +258,21 @@ def js_fi(update, context):
     )
     return FIRST
 
-def button(update, context):
-    query = update.callback_query
-
-    query.edit_message_text(text="Selected option: {}".format(query.data))
-
 def help(update, context):
-    update.message.reply_text("Use /start to use this bot.")
+    print(context.user_data)
+    update.message.reply_text("Use /start to use this bot. After that, you can navigate the inline menu to your desired restaurant or leave feedback with /fb command")
+
+# FEEDBACK conversation
+def fbstart(update, context):
+    update.message.reply_text('Please enter your feedback below')
+    return FB
 
 def feedback(update, context):
-    context.bot.send_message(chat_id=ADMINS[0], text=context.args[0])#update.message.text)
+    update.message.reply_text('Thank you for your feedback!')
+    context.bot.send_message(chat_id=ADMINS[0], text='FEEDBACK FROM %d:\n%s' % (update.message.from_user.id,update.message.text))#update.message.text)
+    return ConversationHandler.END
 
+# INLINE
 def inlinequery(update, context):
     """Handle the inline query."""
     query = update.inline_query.query
@@ -247,9 +297,20 @@ def inlinequery(update, context):
 
     update.inline_query.answer(results)
 
+# OTHER
 def error(update, context):
     """Log Errors caused by Updates."""
     logger.warning('Update "%s" caused error "%s"', update, context.error)
+
+@restricted
+def plans(update, context):
+    update.message.reply_text('Plans:\n')
+
+def fazer(update, context):
+    return 1
+
+def sodexo(update, context):
+    return 1
 
 def main():
     persisto = PicklePersistence(filename='persisto')
@@ -258,7 +319,7 @@ def main():
     # Get the dispa tcher to register handlers
     dp = updater.dispatcher
 
-    conv_handler = ConversationHandler(
+    conv1 = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
             FIRST: [CallbackQueryHandler(ch1_en, pattern='^en'),
@@ -270,7 +331,16 @@ def main():
         persistent=True,
         name='choices'
     )
-    dp.add_handler(conv_handler)
+    dp.add_handler(conv1)
+
+    conv2 = ConversationHandler(
+        entry_points=[CommandHandler('fb', fbstart)],
+        states={
+            FB: [MessageHandler(Filters.text, feedback)]
+        },
+        fallbacks=[]
+    )
+    dp.add_handler(conv2)
 
     @restricted
     def stop(update, context):
