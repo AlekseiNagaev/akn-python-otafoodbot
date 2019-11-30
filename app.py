@@ -3,6 +3,9 @@ import sys
 import re
 from uuid import uuid4
 from threading import Thread
+from flask import Flask
+app = Flask(__name__)
+
 import logging
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram import InputTextMessageContent, InlineQueryResultArticle
@@ -270,6 +273,7 @@ def fazer(update, context):
 def sodexo(update, context):
     return 1
 
+@app.route('/')
 def main():
     persisto = PicklePersistence(filename='persisto')
     updater = Updater(TOKEN,persistence=persisto,use_context=True)
@@ -323,12 +327,19 @@ def main():
     dp.add_handler(CommandHandler('r', restart))
     # log all errors
     dp.add_error_handler(error)
-    print('Start polling')
-    updater.start_polling()
+    print('Started webhook')
+
+    updater.start_webhook(listen='0.0.0.0',
+                            port=8443,
+                            url_path=TOKEN,
+                            webhook_url='https://venagiustlgbot.azurewebsites.net/%s' % TOKEN)
+    #print('Started polling')
+    #updater.start_polling()
+
     # Block until the user presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
     updater.idle()
 
 if __name__ == '__main__':
-    main()
+    app.run()#main()
