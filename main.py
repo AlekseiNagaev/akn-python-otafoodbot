@@ -168,7 +168,8 @@ def choice1(update, context):
     cmd = str(query.data)
     if not context.user_data['lan']:
         context.user_data['lan'] = cmd
-        lan = context.user_data['lan']
+    lan = context.user_data['lan']
+
 
     msg = ch1m[lan]
     try:
