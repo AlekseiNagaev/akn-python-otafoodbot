@@ -268,8 +268,8 @@ def lan(update, context):
     l = context.args[0]
     if l == 'en' or l == 'fi':
         context.user_data['lan'] = l
-    msg = update.message.reply_text('Language set to %s' % l)
-    m_id = msg.message_id
+    update.message.reply_text('Language set to %s' % l)
+    m_id =query.message.message_id + 1
     bot.delete_message(
         chat_id=query.message.chat_id,
         message_id=m_id,
