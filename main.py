@@ -165,9 +165,8 @@ def choice1(update, context):
     """
     query = update.callback_query
     bot = context.bot
-    lan = context.user_data['lan']
     cmd = str(query.data)
-    if lan is None or lan != cmd:
+    if context.user_data['lan'] is None or context.user_data['lan'] != cmd:
         context.user_data['lan'] = cmd
         lan = context.user_data['lan']
 
