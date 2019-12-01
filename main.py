@@ -41,7 +41,14 @@ food = {
             'dipoli':      ['Dipoli',fazer + '3101' + lang],
             'alvari':      ['Alvari',fazer + '0190' + lang],
             'silinteri':   ['Silinteri',fazer + '019002' + lang],
-            'abloc':       ['A Bloc',fazer + '3087`
+            'abloc':       ['A Bloc',fazer + '3087' + lang],
+            'tuas':        ['TUAS',fazer + '0199' + lang]
+            }
+open = {
+            'en': 'Open ',
+            'fi': 'Avaa '
+        }
+closed = {
             'en': 'Closed today',
             'fi': 'Suljettu tanaan'
         }
