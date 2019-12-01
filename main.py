@@ -4,8 +4,8 @@ import re
 #from uuid import uuid4
 from threading import Thread
 
-`from flask import Flask
-app = Flask(__name__)
+#from flask import Flask
+#app = Flask(__name__)
 
 import logging
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
@@ -30,8 +30,10 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-TOKEN = os.environ['TOKEN']
-ADMINS = os.environ['ADMINS']
+TOKEN = os.environ.get('TOKEN')
+ADMINS = os.environ.get('ADMINS')
+NAME = os.environ.get('NAME')
+PORT = os.environ.get('PORT')
 
 fazer = 'https://www.fazerfoodco.fi/modules/json/json/Index?costNumber='
 lang = '&language='
@@ -269,8 +271,8 @@ def fazer(update, context):
 def sodexo(update, context):
     return 1
 
-@app.route('/')
 def main():
+
     persisto = PicklePersistence(filename='persisto')
     updater = Updater(TOKEN,persistence=persisto,use_context=True)
     #print('My PID is:', os.getpid())
@@ -326,9 +328,9 @@ def main():
     print('Started webhook')
 
     updater.start_webhook(listen='0.0.0.0',
-                            port=8443,
-                            url_path=TOKEN,
-                            webhook_url='https://venagiustlgbot.azurewebsites.net/%s' % TOKEN)
+                            port=int(PORT),
+                            url_path=TOKEN)
+    updater.bot.setWebhook("https://{}.herokuapp.com/{}".format(NAME, TOKEN))
     #print('Started polling')
     #updater.start_polling()
 
@@ -338,4 +340,4 @@ def main():
     updater.idle()
 
 if __name__ == '__main__':
-    app.run()#main()
+    main()
