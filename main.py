@@ -277,7 +277,10 @@ def sodexo(update, context):
     return 1
 
 def main():
+    return 1
 
+if __name__ == '__main__':
+    #main()
     TOKEN = os.environ.get('TOKEN')
     NAME = os.environ.get('NAME')
     PORT = PORT = int(os.environ.get('PORT', '8443'))
@@ -346,11 +349,4 @@ def main():
     updater.bot.setWebhook("https://{}.herokuapp.com/{}".format(NAME, TOKEN))
     #print('Started polling')
     #updater.start_polling()
-
-    # Block until the user presses Ctrl-C or the process receives SIGINT,
-    # SIGTERM or SIGABRT. This should be used most of the time, since
-    # start_polling() is non-blocking and will stop the bot gracefully.
     updater.idle()
-
-if __name__ == '__main__':
-    main()
