@@ -263,10 +263,19 @@ def feedback(update, context):
 
 # OTHER
 def lan(update, context):
+    query = update.callback_query
+    bot = context.bot
     l = context.args[0]
     if l == 'en' or l == 'fi':
         context.user_data['lan'] = l
-    update.message.reply_text('Language set to %s' % l)
+    msg = update.message.reply_text('Language set to %s' % l)
+    m_id = msg.message_id
+    bot.delete_message(
+        chat_id=query.message.chat_id,
+        message_id=m_id,
+        timeout=5
+    )
+
 def error(update, context):
     """Log Errors caused by Updates."""
     logger.warning('Update "%s" caused error "%s"', update, context.error)
