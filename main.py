@@ -126,7 +126,7 @@ def load_fazer(key,lan):
         msg += '%s\n' % closed[lan]
     else:
         msg += '%s %s\n' % (open[lan],lt)
-        data = fixi.choice(key, data)
+        data = fixi.choice(key, data, lan)
         for x in data['SetMenus']:
             msg+="<b>%s</b>\n" % x["Name"]
             for y in x['Components']:
@@ -166,7 +166,7 @@ def choice1(update, context):
     query = update.callback_query
     bot = context.bot
     cmd = str(query.data)
-    if context.user_data['lan'] or context.user_data['lan'] != cmd:
+    if not context.user_data['lan']:
         context.user_data['lan'] = cmd
         lan = context.user_data['lan']
 
