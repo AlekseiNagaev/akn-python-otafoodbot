@@ -153,7 +153,7 @@ def start(update, context):
             ]
     reply_markup = InlineKeyboardMarkup(btns)
     update.message.reply_text(msg, reply_markup=reply_markup)
-
+    context.user_data['lan'] = []
     return FIRST
 
 def choice1(update, context):
@@ -166,7 +166,7 @@ def choice1(update, context):
     query = update.callback_query
     bot = context.bot
     cmd = str(query.data)
-    if context.user_data['lan'] is None or context.user_data['lan'] != cmd:
+    if context.user_data['lan'] or context.user_data['lan'] != cmd:
         context.user_data['lan'] = cmd
         lan = context.user_data['lan']
 
@@ -264,15 +264,19 @@ def feedback(update, context):
 def language(update, context):
     query = update.callback_query
     bot = context.bot
-    l = context.args[0]
-    if l == 'en' or l == 'fi':
+    if context.args:
+        l = context.args[0]
+        if l == 'en' or l == 'fi':
+            context.user_data['lan'] = l
+    else:
+        l = 'en'
         context.user_data['lan'] = l
     update.message.reply_text('Language set to %s' % l)
 
 def error(update, context):
     """Log Errors caused by Updates."""
     logger.warning('Update "%s" caused error "%s"', update, context.error)
-
+    raise context.error
 @restricted
 def plans(update, context):
     update.message.reply_text('Plans:\n')
@@ -292,10 +296,10 @@ if __name__ == '__main__':
     NAME = os.environ.get('NAME')
     PORT = PORT = int(os.environ.get('PORT', '8443'))
 
-    print(TOKEN)
-    print(NAME)
-    print(PORT)
-    print(ADMINS)
+    #print(TOKEN)
+    #print(NAME)
+    #print(PORT)
+    #print(ADMINS)
     persisto = PicklePersistence(filename='persisto')
     updater = Updater(TOKEN,persistence=persisto,use_context=True)
     #print('My PID is:', os.getpid())
