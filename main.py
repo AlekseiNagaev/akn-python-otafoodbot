@@ -280,7 +280,7 @@ def main():
 
     TOKEN = os.environ.get('TOKEN')
     NAME = os.environ.get('NAME')
-    PORT = os.environ.get('PORT')
+    PORT = PORT = int(os.environ.get('PORT', '8443'))
 
     print(TOKEN)
     print(NAME)
