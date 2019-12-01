@@ -19,7 +19,7 @@ def del_n(data):
             data['SetMenus'][i]['Components'][j] = data['SetMenus'][i]['Components'][j].replace('\n','')
     return data
 
-def abloc(data):
+def abloc(data, lan):
     if lan == 'en':
         if data['SetMenus'][0]['Name'] is None:
              data['SetMenus'][0]['Name'] = 'Vegetarian Lunch'
