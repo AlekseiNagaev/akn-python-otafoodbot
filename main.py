@@ -204,6 +204,7 @@ def result(update, context):
     lan = context.user_data['lan']
     #datetime.datetime.today().weekday()
     #print(url)
+    print(lan)
     msg = load_fazer(key,lan)
     #print('Prices: ' + data['MenusForDays'][0]['SetMenus'][i3]['Price'])
     #print(msg)
