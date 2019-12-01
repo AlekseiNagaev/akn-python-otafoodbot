@@ -122,7 +122,7 @@ def load_fazer(key,lan):
     d2 = datetime.datetime.strftime(d,'%d %b %Y')
     msg += '%s\n' % d2
     lt = data['LunchTime']
-    if lt is None or lt is 'Closed' or lt is 'Suljettu':
+    if lt is None or lt == 'Closed' or lt == 'Suljettu':
         msg += '%s\n' % closed[lan]
     else:
         msg += '%s %s\n' % (open[lan],lt)
