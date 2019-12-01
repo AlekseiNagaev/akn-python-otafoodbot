@@ -262,7 +262,7 @@ def feedback(update, context):
     #update.inline_query.answer(results)
 
 # OTHER
-def lan(update, context):
+def language(update, context):
     query = update.callback_query
     bot = context.bot
     l = context.args[0]
@@ -347,7 +347,7 @@ if __name__ == '__main__':
         Thread(target=stop_and_restart).start()
 
     dp.add_handler(CommandHandler('r', restart))
-    dp.add_handler(CommandHandler('lang', lan))
+    dp.add_handler(CommandHandler('lang', language))
     # log all errors
     dp.add_error_handler(error)
     print('Started webhook')
