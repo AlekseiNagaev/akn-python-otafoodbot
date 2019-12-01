@@ -30,10 +30,8 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-TOKEN = os.environ.get('TOKEN')
+
 ADMINS = os.environ.get('ADMINS')
-NAME = os.environ.get('NAME')
-PORT = os.environ.get('PORT')
 
 fazer = 'https://www.fazerfoodco.fi/modules/json/json/Index?costNumber='
 lang = '&language='
@@ -280,6 +278,10 @@ def sodexo(update, context):
 
 def main():
 
+    TOKEN = os.environ.get('TOKEN')
+    NAME = os.environ.get('NAME')
+    PORT = os.environ.get('PORT')
+
     persisto = PicklePersistence(filename='persisto')
     updater = Updater(TOKEN,persistence=persisto,use_context=True)
     #print('My PID is:', os.getpid())
@@ -317,7 +319,7 @@ def main():
     dp.add_handler(CommandHandler('fb', feedback))
     #dp.add_handler(CallbackQueryHandler(button,pattern='^@'))
     dp.add_handler(CommandHandler('help', help))
-    dp.add_handler(InlineQueryHandler(inlinequery))
+    #dp.add_handler(InlineQueryHandler(inlinequery))
 
     def stop_and_restart():
         """Gracefully stop the Updater and replace the current process with a new one"""
