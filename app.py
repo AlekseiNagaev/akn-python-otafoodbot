@@ -1,9 +1,10 @@
 import os
 import sys
 import re
-from uuid import uuid4
+#from uuid import uuid4
 from threading import Thread
-from flask import Flask
+
+`from flask import Flask
 app = Flask(__name__)
 
 import logging
@@ -15,21 +16,22 @@ from telegram.ext import Updater, Filters
 from telegram.ext import CommandHandler, CallbackQueryHandler, ConversationHandler, InlineQueryHandler, MessageHandler
 from telegram.ext import PicklePersistence
 from telegram.utils.helpers import escape_markdown
+
 import datetime
-import urllib.request, json
+import urllib.request
+import json
 from functools import wraps
-from configparser import ConfigParser
+
 import fixi
+
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s\n',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-parser = ConfigParser()
-parser.read('config.ini')
-TOKEN = parser.get('TOKENS', 'TOKEN')#str(os.environ['TOKEN'])
-ADMINS = [int(parser.get('TOKENS', 'ADMINS'))]#[int(os.environ['USERID'])]
+TOKEN = os.environ['TOKEN']
+ADMINS = os.environ['ADMINS']
 
 fazer = 'https://www.fazerfoodco.fi/modules/json/json/Index?costNumber='
 lang = '&language='
@@ -37,14 +39,7 @@ food = {
             'dipoli':      ['Dipoli',fazer + '3101' + lang],
             'alvari':      ['Alvari',fazer + '0190' + lang],
             'silinteri':   ['Silinteri',fazer + '019002' + lang],
-            'abloc':       ['A Bloc',fazer + '3087' + lang],
-            'tuas':        ['TUAS',fazer + '0199' + lang]
-            }
-open = {
-            'en': 'Open ',
-            'fi': 'Avaa '
-        }
-closed = {
+            'abloc':       ['A Bloc',fazer + '3087`
             'en': 'Closed today',
             'fi': 'Suljettu tanaan'
         }
@@ -130,6 +125,7 @@ def load_fazer(key,lan):
             for y in x['Components']:
                 msg+="\t\t\t%s\n" % y
     return msg
+
 # Bot commands
 # CHOICE conversaton
 #@restricted
@@ -234,29 +230,29 @@ def feedback(update, context):
     return ConversationHandler.END
 
 # INLINE
-def inlinequery(update, context):
-    """Handle the inline query."""
-    query = update.inline_query.query
-    results = [
-        InlineQueryResultArticle(
-            id=uuid4(),
-            title="Caps",
-            input_message_content=InputTextMessageContent(
-                query.upper())),
-        InlineQueryResultArticle(
-            id=uuid4(),
-            title="Bold",
-            input_message_content=InputTextMessageContent(
-                "*{}*".format(escape_markdown(query)),
-                parse_mode=ParseMode.MARKDOWN)),
-        InlineQueryResultArticle(
-            id=uuid4(),
-            title="Italic",
-            input_message_content=InputTextMessageContent(
-                "_{}_".format(escape_markdown(query)),
-                parse_mode=ParseMode.MARKDOWN))]
+#def inlinequery(update, context):
+    #"""Handle the inline query."""
+    #query = update.inline_query.query
+    #results = [
+        #InlineQueryResultArticle(
+            #id=uuid4(),
+            #title="Caps",
+            #input_message_content=InputTextMessageContent(
+                #query.upper())),
+        #InlineQueryResultArticle(
+            #id=uuid4(),
+            #title="Bold",
+            #input_message_content=InputTextMessageContent(
+                #"*{}*".format(escape_markdown(query)),
+                #parse_mode=ParseMode.MARKDOWN)),
+        #InlineQueryResultArticle(
+            #id=uuid4(),
+            #title="Italic",
+            #input_message_content=InputTextMessageContent(
+                #"_{}_".format(escape_markdown(query)),
+                #parse_mode=ParseMode.MARKDOWN))]
 
-    update.inline_query.answer(results)
+    #update.inline_query.answer(results)
 
 # OTHER
 def error(update, context):
