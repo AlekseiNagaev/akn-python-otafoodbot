@@ -269,12 +269,6 @@ def lan(update, context):
     if l == 'en' or l == 'fi':
         context.user_data['lan'] = l
     update.message.reply_text('Language set to %s' % l)
-    m_id =query.message.message_id + 1
-    bot.delete_message(
-        chat_id=query.message.chat_id,
-        message_id=m_id,
-        timeout=5
-    )
 
 def error(update, context):
     """Log Errors caused by Updates."""
