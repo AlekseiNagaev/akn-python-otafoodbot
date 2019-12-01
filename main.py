@@ -282,6 +282,10 @@ def main():
     NAME = os.environ.get('NAME')
     PORT = os.environ.get('PORT')
 
+    print(TOKEN)
+    print(NAME)
+    print(PORT)
+    print(ADMINS)
     persisto = PicklePersistence(filename='persisto')
     updater = Updater(TOKEN,persistence=persisto,use_context=True)
     #print('My PID is:', os.getpid())
