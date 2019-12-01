@@ -262,6 +262,11 @@ def feedback(update, context):
     #update.inline_query.answer(results)
 
 # OTHER
+def lan(update, context):
+    l = context.args[0]
+    if l == 'en' or l == 'fi':
+        context.user_data['lan'] = l
+    update.message.reply_text('Language set to %s' % l)
 def error(update, context):
     """Log Errors caused by Updates."""
     logger.warning('Update "%s" caused error "%s"', update, context.error)
@@ -339,6 +344,7 @@ if __name__ == '__main__':
         Thread(target=stop_and_restart).start()
 
     dp.add_handler(CommandHandler('r', restart))
+    dp.add_handler(CommandHandler('lang', lan))
     # log all errors
     dp.add_error_handler(error)
     print('Started webhook')
