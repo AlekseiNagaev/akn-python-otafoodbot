@@ -167,7 +167,7 @@ def choice1(update, context):
     bot = context.bot
     lan = context.user_data['lan']
     cmd = str(query.data)
-    if lan != cmd:
+    if lan is None or lan != cmd:
         context.user_data['lan'] = cmd
         lan = context.user_data['lan']
 
