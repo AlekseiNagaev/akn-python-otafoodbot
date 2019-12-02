@@ -234,7 +234,7 @@ def fbstart(update, context):
 
 def feedback(update, context):
     update.message.reply_text('Thank you for your feedback!')
-    context.bot.send_message(chat_id=ADMINS[0], text='FEEDBACK FROM %s(%d):\n%s' % (update.message.from_user.username, update.message.from_user.id, update.message.text))#update.message.text)
+    context.bot.send_message(chat_id=ADMINS[0], text='FEEDBACK FROM @%s (%d):\n%s' % (update.message.from_user.username, update.message.from_user.id, update.message.text))#update.message.text)
     return ConversationHandler.END
 
 # INLINE
