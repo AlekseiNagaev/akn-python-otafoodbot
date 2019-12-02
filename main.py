@@ -21,6 +21,7 @@ import datetime
 import urllib.request
 import json
 from functools import wraps
+import ast
 
 import fixi
 
@@ -32,6 +33,7 @@ logger.setLevel(logging.INFO)
 
 
 ADMINS = os.environ.get('ADMINS')
+ADMINS = x = ast.literal_eval(ADMINS)
 
 fazer = 'https://www.fazerfoodco.fi/modules/json/json/Index?costNumber='
 lang = '&language='
