@@ -125,7 +125,7 @@ def load_fazer(key,lan):
     if lt is None or lt == 'Closed' or lt == 'Suljettu':
         msg += '%s\n' % closed[lan]
     else:
-        msg += '%s %s\n' % (open[lan],lt)
+        msg += '%s%s\n' % (open[lan],lt)
         data = fixi.choice(key, data, lan)
         for x in data['SetMenus']:
             msg+="<b>%s</b>\n" % x["Name"]
@@ -203,8 +203,6 @@ def result(update, context):
     key = str(query.data)
     lan = context.user_data['lan']
     #datetime.datetime.today().weekday()
-    #print(url)
-    print(lan)
     msg = load_fazer(key,lan)
     #print('Prices: ' + data['MenusForDays'][0]['SetMenus'][i3]['Price'])
     #print(msg)
@@ -297,7 +295,7 @@ if __name__ == '__main__':
     TOKEN = os.environ.get('TOKEN')
     NAME = os.environ.get('NAME')
     PORT = PORT = int(os.environ.get('PORT', '8443'))
-
+    ISSERVER = int(os.environ.get('ISSERVER', '0'))
     #print(TOKEN)
     #print(NAME)
     #print(PORT)
@@ -355,12 +353,15 @@ if __name__ == '__main__':
     dp.add_handler(CommandHandler('lang', language))
     # log all errors
     dp.add_error_handler(error)
-    print('Started webhook')
 
-    updater.start_webhook(listen='0.0.0.0',
-                            port=int(PORT),
-                            url_path=TOKEN)
-    updater.bot.setWebhook("https://{}.herokuapp.com/{}".format(NAME, TOKEN))
-    #print('Started polling')
-    #updater.start_polling()
+    if ISSERVER:
+        print('Starting webhook')
+        updater.start_webhook(listen='0.0.0.0',
+                                port=int(PORT),
+                                url_path=TOKEN)
+        updater.bot.setWebhook("https://{}.herokuapp.com/{}".format(NAME, TOKEN))
+    else:
+        print('Starting polling')
+        updater.start_polling()
+
     updater.idle()
