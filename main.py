@@ -38,10 +38,10 @@ ADMINS = x = ast.literal_eval(ADMINS)
 fazer = 'https://www.fazerfoodco.fi/modules/json/json/Index?costNumber='
 lang = '&language='
 food = {
-            'dipoli':      ['Dipoli',fazer + '3101' + lang],
-            'alvari':      ['Alvari',fazer + '0190' + lang],
-            'silinteri':   ['Silinteri',fazer + '019002' + lang],
             'abloc':       ['A Bloc',fazer + '3087' + lang],
+            'alvari':      ['Alvari',fazer + '0190' + lang],
+            'dipoli':      ['Dipoli',fazer + '3101' + lang],
+            'silinteri':   ['Silinteri',fazer + '019002' + lang],
             'tuas':        ['TUAS',fazer + '0199' + lang]
             }
 open = {
@@ -64,6 +64,7 @@ btnm = {
 
 FIRST, SECOND = range(2)
 FB = 1
+
 # Wrap functions for admin protection and typing decoration
 def restricted(func):
     """
@@ -89,30 +90,7 @@ def typing(func):
         return func(update, context,  *args, **kwargs)
     return command_func
 
-# Additional functions
-
-def load_food():
-    """
-    [UNUSED]
-    Loads lunch menu from .json file.
-    Returns:
-        data (json): data from the restaurant
-    """
-    filename = {
-                'Dipoli':       'dipoli',
-                'Alvari':       'alvari',
-                'Silinteri':    'silinteri',
-                'A Bloc':       'abloc',
-                'TUAS':         'tuas'
-                }
-    ext = '.json'
-    for key in filename.keys():
-        filename[key] += lang
-        filename[key] += ext
-        with open(filename[key], 'r') as f:
-            data = json.load(f)
-    return data
-
+# Company-specific functions
 def load_fazer(key,lan):
     url = food[key][1] + lan
     with urllib.request.urlopen(url) as url1:
