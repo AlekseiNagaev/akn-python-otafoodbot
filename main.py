@@ -135,6 +135,10 @@ def load_fazer(key,lan):
                 msg+="\t\t\t%s\n" % y
     return msg
 
+def load_sodexo(key, lan):
+    url = food[key][1] + lan
+    with urllib.request.urlopen(url) as url1:
+        data = json.loads(url1.read().decode())
 # Bot commands
 # CHOICE conversaton
 #@restricted
@@ -225,7 +229,7 @@ def result(update, context):
 
 def help(update, context):
     print(context.user_data)
-    update.message.reply_text("Use /start to use this bot. After that, you can navigate the inline menu to your desired restaurant or leave feedback with /fb command")
+    update.message.reply_text("Use /start to use this bot. After that, choose the language and you can navigate the inline menu to your desired restaurant or leave feedback with /fb command")
 
 # FEEDBACK conversation
 def fbstart(update, context):
@@ -234,7 +238,7 @@ def fbstart(update, context):
 
 def feedback(update, context):
     update.message.reply_text('Thank you for your feedback!')
-    context.bot.send_message(chat_id=ADMINS[0], text='FEEDBACK FROM @%s (%d):\n%s' % (update.message.from_user.username, update.message.from_user.id, update.message.text))#update.message.text)
+    context.bot.send_message(chat_id=ADMINS[0], text='FEEDBACK FROM @%s:\n%s' % (update.message.from_user.username , update.message.text))#update.message.text)
     return ConversationHandler.END
 
 # INLINE
