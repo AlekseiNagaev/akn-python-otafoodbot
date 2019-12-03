@@ -1,13 +1,13 @@
-def choice(name, data, lan):
-    if name == 'abloc':
+def fazer(key, data, lan):
+    if key == 'abloc':
         data = abloc(data, lan)
-    if name == 'alvari':
+    if key == 'alvari':
         data = alvari(data, lan)
-    if name == 'dipoli':
+    if key == 'dipoli':
         data = dipoli(data, lan)
-    if name == 'silinteri':
+    if key == 'silinteri':
         data = silinteri(data, lan)
-    if name == 'tuas':
+    if key == 'tuas':
         data = tuas(data, lan)
     return data
 
@@ -49,3 +49,12 @@ def tuas(data, lan):
     data['SetMenus'][5]['Name'] = 'Dessert'
     data = del_n(data)
     return data
+
+def sodexo(key):
+    if key == 'kvarkki':
+        lt = '10.30 - 14.00'
+    if key == 'tietotekniikantalo':
+        lt = '11.00 - 15.00'
+    if key == 'valimo':
+        lt = '10.30 - 14.30'
+    return lt

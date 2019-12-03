@@ -1,7 +1,7 @@
 import os
 import sys
 import re
-#from uuid import uuid4
+from uuid import uuid4
 from threading import Thread
 
 #from flask import Flask
@@ -18,12 +18,12 @@ from telegram.ext import PicklePersistence
 from telegram.utils.helpers import escape_markdown
 
 import datetime
-import urllib.request
+from urllib.request import Request, urlopen
 import json
 from functools import wraps
 import ast
 
-import fixi
+import fixit
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s\n',
@@ -35,18 +35,26 @@ logger.setLevel(logging.INFO)
 ADMINS = os.environ.get('ADMINS')
 ADMINS = x = ast.literal_eval(ADMINS)
 
-fazer = 'https://www.fazerfoodco.fi/modules/json/json/Index?costNumber='
-lang = '&language='
-food = {
-            'abloc':       ['A Bloc',fazer + '3087' + lang],
-            'alvari':      ['Alvari',fazer + '0190' + lang],
-            'dipoli':      ['Dipoli',fazer + '3101' + lang],
-            'silinteri':   ['Silinteri',fazer + '019002' + lang],
-            'tuas':        ['TUAS',fazer + '0199' + lang]
+url0 = 'https://www.fazerfoodco.fi/modules/json/json/Index?costNumber='
+l0 = '&language='
+f2zer = {
+            'abloc':       ['A Bloc',url0 + '3087' + l0],
+            'alvari':      ['Alvari',url0 + '0190' + l0],
+            'dipoli':      ['Dipoli',url0 + '3101' + l0],
+            'silinteri':   ['Silinteri',url0 + '019002' + l0],
+            'tuas':        ['TUAS',url0 + '0199' + l0]
             }
-open = {
-            'en': 'Open ',
-            'fi': 'Avaa '
+
+url1 = 'https://www.sodexo.fi/ruokalistat/output/daily_json/'
+s0dexo = {
+            'kvarkki':              ['Kvarkki', url1 + '86' + '/'],
+            'tietotekniikantalo':   ['Tietotekniikantalo', url1 + '6754' + '/'],
+            'valimo':               ['Valimo', url1 + '220' + '/']
+            }
+
+lunch = {
+            'en': 'Lunch ',
+            'fi': 'Lounas '
         }
 closed = {
             'en': 'Closed today',
@@ -92,21 +100,22 @@ def typing(func):
 
 # Company-specific functions
 def load_fazer(key,lan):
-    url = food[key][1] + lan
-    with urllib.request.urlopen(url) as url1:
-        data = json.loads(url1.read().decode())
+    url = f2zer[key][1] + lan
+    rq = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    with urlopen(rq) as u:
+        data = json.loads(u.read().decode())
 
     msg = '<a href="%s">%s</a>\n' % (data['RestaurantUrl'],data["RestaurantName"])
     data = data['MenusForDays'][0]
     d = datetime.datetime.strptime(data['Date'],'%Y-%m-%dT%H:%M:%S%z')
-    d2 = datetime.datetime.strftime(d,'%d %b %Y')
+    d2 = d.strftime('%d %b %Y')
     msg += '%s\n' % d2
     lt = data['LunchTime']
     if lt is None or lt == 'Closed' or lt == 'Suljettu':
         msg += '%s\n' % closed[lan]
     else:
-        msg += '%s%s\n' % (open[lan],lt)
-        data = fixi.choice(key, data, lan)
+        msg += '%s%s\n' % (lunch[lan],lt)
+        data = fixit.fazer(key, data, lan)
         for x in data['SetMenus']:
             msg+="<b>%s</b>\n" % x["Name"]
             for y in x['Components']:
@@ -114,9 +123,30 @@ def load_fazer(key,lan):
     return msg
 
 def load_sodexo(key, lan):
-    url = food[key][1] + lan
-    with urllib.request.urlopen(url) as url1:
-        data = json.loads(url1.read().decode())
+    z = datetime.datetime.today().weekday()
+    if z in range(4):
+        x = datetime.datetime.today()
+        x1 = x.strftime('%Y-%m-%d')
+        url = s0dexo[key][1] + x1
+        rq = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urlopen(rq) as u:
+            data = json.loads(u.read().decode())
+
+        meta = data['meta']
+        msg = '<a href="%s">%s</a>\n' % (meta['ref_url'],meta["ref_title"])
+        data = data['courses']
+        y = x.strftime('%d %b %Y')
+        msg += '%s\n' % y
+        lt = fixit.sodexo(key)
+        msg += '%s%s\n' % (lunch[lan],lt)
+        ti = 'title_' + lan
+        for f in data:
+            msg+="<b>%s</b>\n" % f["category"]
+            msg+="\t\t\t%s\n" % f[ti]
+    else:
+        msg = '%s\n' % sodexo[key][0]
+        msg += '%s\n' % closed[lan]
+    return msg
 # Bot commands
 # CHOICE conversaton
 #@restricted
@@ -154,13 +184,21 @@ def choice1(update, context):
         context.user_data['lan'] = cmd
     lan = context.user_data['lan']
 
-
     msg = ch1m[lan]
     try:
         btns = []
-        for key in food.keys():
-            s = key
-            btn = InlineKeyboardButton(food[key][0], callback_data=s)
+        x = [*f2zer.keys()]
+        y = [*s0dexo.keys()]
+        n = min(len(x),len(y))
+        for i in range(n):
+            s1 = x[i]
+            s2 = y[i]
+            btn1 = InlineKeyboardButton(f2zer[s1][0], callback_data=s1)
+            btn2 = InlineKeyboardButton(s0dexo[s2][0], callback_data=s2)
+            btns.append([btn1,btn2])
+        for i in range(n,len(x)):
+            s = x[i]
+            btn = InlineKeyboardButton(f2zer[s][0], callback_data=s)
             btns.append([btn])
         reply_markup = InlineKeyboardMarkup(btns)
         bot.edit_message_text(
@@ -171,6 +209,7 @@ def choice1(update, context):
         )
     except:
         print('Sad panda')
+        raise context.error
 
     return SECOND
 
@@ -187,7 +226,10 @@ def result(update, context):
     key = str(query.data)
     lan = context.user_data['lan']
     #datetime.datetime.today().weekday()
-    msg = load_fazer(key,lan)
+    if key in f2zer.keys():
+        msg = load_fazer(key,lan)
+    if key in s0dexo.keys():
+        msg = load_sodexo(key,lan)
     #print('Prices: ' + data['MenusForDays'][0]['SetMenus'][i3]['Price'])
     #print(msg)
     btns = []
@@ -206,7 +248,7 @@ def result(update, context):
     return FIRST
 
 def help(update, context):
-    print(context.user_data)
+    #print(context.user_data)
     update.message.reply_text("Use /start to use this bot. After that, choose the language and you can navigate the inline menu to your desired restaurant or leave feedback with /fb command")
 
 # FEEDBACK conversation
@@ -220,29 +262,21 @@ def feedback(update, context):
     return ConversationHandler.END
 
 # INLINE
-#def inlinequery(update, context):
-    #"""Handle the inline query."""
-    #query = update.inline_query.query
-    #results = [
-        #InlineQueryResultArticle(
-            #id=uuid4(),
-            #title="Caps",
-            #input_message_content=InputTextMessageContent(
-                #query.upper())),
-        #InlineQueryResultArticle(
-            #id=uuid4(),
-            #title="Bold",
-            #input_message_content=InputTextMessageContent(
-                #"*{}*".format(escape_markdown(query)),
-                #parse_mode=ParseMode.MARKDOWN)),
-        #InlineQueryResultArticle(
-            #id=uuid4(),
-            #title="Italic",
-            #input_message_content=InputTextMessageContent(
-                #"_{}_".format(escape_markdown(query)),
-                #parse_mode=ParseMode.MARKDOWN))]
-
-    #update.inline_query.answer(results)
+def inlinequery(update, context):
+    """Handle the inline query."""
+    query = update.inline_query.query
+    lan = context.user_data['lan']
+    results = []
+    InlineQueryResultArticle(id=uuid4(), title="Bold", input_message_content=InputTextMessageContent("*{}*".format(escape_markdown(query)),parse_mode=ParseMode.MARKDOWN))
+    for x in f2zer.keys():
+        s = load_fazer(x,lan)
+        #sr = InlineQueryResultArticle(id=uuid4(), title=f2zer[x][0], input_message_content=s)                                                                    )
+        results.append(InlineQueryResultArticle(id=uuid4(), title=f2zer[x][0], input_message_content=InputTextMessageContent(s,parse_mode=ParseMode.HTML)))
+    for x in s0dexo.keys():
+        s = load_sodexo(x,lan)
+        #r = InlineQueryResultArticle(id=uuid4(), title=s0dexo[x][0],input_message_content=s)
+        results.append(InlineQueryResultArticle(id=uuid4(), title=s0dexo[x][0],input_message_content=InputTextMessageContent(s,parse_mode=ParseMode.HTML)))
+    update.inline_query.answer(results)
 
 # OTHER
 def language(update, context):
@@ -266,10 +300,24 @@ def plans(update, context):
     update.message.reply_text('Plans:\n')
 
 def fazer(update, context):
-    return 1
+    #query = update.callback_query
+    #bot = context.bot
+    lan = context.user_data['lan']
+    #print('fazer executed
+    key = (update.message.text).split('/')[1]
+    print(key)
+    msg = load_fazer(key,lan)
+    update.message.reply_text(msg,parse_mode=ParseMode.HTML,disable_web_page_preview=1)
 
 def sodexo(update, context):
-    return 1
+    #query = update.callback_query
+    #bot = context.bot
+    lan = context.user_data['lan']
+    key = (update.message.text).split('/')[1]
+    print(key)
+    #print('sodexo executed')
+    msg = load_sodexo(key,lan)
+    update.message.reply_text(msg,parse_mode=ParseMode.HTML,disable_web_page_preview=1)
 
 def main():
     return 1
@@ -311,6 +359,14 @@ if __name__ == '__main__':
     )
     dp.add_handler(conv2)
 
+    fz = []
+    for x in f2zer.keys():
+        fz.append(x)
+    dp.add_handler(CommandHandler(fz, fazer))
+    sx = []
+    for x in s0dexo.keys():
+        sx.append(x)
+    dp.add_handler(CommandHandler(sx, sodexo))
     @restricted
     def stop(update, context):
         update.message.reply_text("Shutting down")
@@ -321,7 +377,7 @@ if __name__ == '__main__':
     dp.add_handler(CommandHandler('fb', feedback))
     #dp.add_handler(CallbackQueryHandler(button,pattern='^@'))
     dp.add_handler(CommandHandler('help', help))
-    #dp.add_handler(InlineQueryHandler(inlinequery))
+    dp.add_handler(InlineQueryHandler(inlinequery))
 
     def stop_and_restart():
         """Gracefully stop the Updater and replace the current process with a new one"""
