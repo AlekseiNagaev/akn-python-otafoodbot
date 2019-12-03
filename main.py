@@ -271,11 +271,11 @@ def inlinequery(update, context):
     for x in f2zer.keys():
         s = load_fazer(x,lan)
         #sr = InlineQueryResultArticle(id=uuid4(), title=f2zer[x][0], input_message_content=s)                                                                    )
-        results.append(InlineQueryResultArticle(id=uuid4(), title=f2zer[x][0], input_message_content=InputTextMessageContent(message_text=s,parse_mode=ParseMode.HTML)))
+        results.append(InlineQueryResultArticle(id=uuid4(), title=f2zer[x][0], input_message_content=InputTextMessageContent(message_text=s,parse_mode=ParseMode.HTML,disable_web_page_preview=1)))
     for x in s0dexo.keys():
         s = load_sodexo(x,lan)
         #r = InlineQueryResultArticle(id=uuid4(), title=s0dexo[x][0],input_message_content=s)
-        results.append(InlineQueryResultArticle(id=uuid4(), title=s0dexo[x][0],input_message_content=InputTextMessageContent(message_text=s,parse_mode=ParseMode.HTML)))
+        results.append(InlineQueryResultArticle(id=uuid4(), title=s0dexo[x][0],input_message_content=InputTextMessageContent(message_text=s,parse_mode=ParseMode.HTML,disable_web_page_preview=1)))
     update.inline_query.answer(results)
 
 # OTHER
