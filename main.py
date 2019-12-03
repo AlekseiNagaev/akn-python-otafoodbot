@@ -267,15 +267,15 @@ def inlinequery(update, context):
     query = update.inline_query.query
     lan = context.user_data['lan']
     results = []
-    InlineQueryResultArticle(id=uuid4(), title="Bold", input_message_content=InputTextMessageContent("*{}*".format(escape_markdown(query)),parse_mode=ParseMode.MARKDOWN))
+    # InlineQueryResultArticle(id=uuid4(), title="Bold", input_message_content=InputTextMessageContent("*{}*".format(escape_markdown(query)),parse_mode=ParseMode.MARKDOWN))
     for x in f2zer.keys():
         s = load_fazer(x,lan)
         #sr = InlineQueryResultArticle(id=uuid4(), title=f2zer[x][0], input_message_content=s)                                                                    )
-        results.append(InlineQueryResultArticle(id=uuid4(), title=f2zer[x][0], input_message_content=InputTextMessageContent(s,parse_mode=ParseMode.HTML)))
+        results.append(InlineQueryResultArticle(id=uuid4(), title=f2zer[x][0], input_message_content=InputTextMessageContent(message_text=s,parse_mode=ParseMode.HTML)))
     for x in s0dexo.keys():
         s = load_sodexo(x,lan)
         #r = InlineQueryResultArticle(id=uuid4(), title=s0dexo[x][0],input_message_content=s)
-        results.append(InlineQueryResultArticle(id=uuid4(), title=s0dexo[x][0],input_message_content=InputTextMessageContent(s,parse_mode=ParseMode.HTML)))
+        results.append(InlineQueryResultArticle(id=uuid4(), title=s0dexo[x][0],input_message_content=InputTextMessageContent(message_text=s,parse_mode=ParseMode.HTML)))
     update.inline_query.answer(results)
 
 # OTHER
