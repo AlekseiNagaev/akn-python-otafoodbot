@@ -228,8 +228,10 @@ def result(update, context):
     #datetime.datetime.today().weekday()
     if key in f2zer.keys():
         msg = load_fazer(key,lan)
-    if key in s0dexo.keys():
+    elif key in s0dexo.keys():
         msg = load_sodexo(key,lan)
+    else:
+        msg = []
     #print('Prices: ' + data['MenusForDays'][0]['SetMenus'][i3]['Price'])
     #print(msg)
     btns = []
