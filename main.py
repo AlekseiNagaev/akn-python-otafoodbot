@@ -295,6 +295,7 @@ def error(update, context):
     """Log Errors caused by Updates."""
     logger.warning('Update "%s" caused error "%s"', update, context.error)
     raise context.error
+
 @restricted
 def plans(update, context):
     update.message.reply_text('Plans:\n')
@@ -328,16 +329,13 @@ if __name__ == '__main__':
     NAME = os.environ.get('NAME')
     PORT = PORT = int(os.environ.get('PORT', '8443'))
     ISSERVER = int(os.environ.get('ISSERVER', '0'))
-    #print(TOKEN)
-    #print(NAME)
-    #print(PORT)
-    #print(ADMINS)
     persisto = PicklePersistence(filename='persisto')
     updater = Updater(TOKEN,persistence=persisto,use_context=True)
-    #print('My PID is:', os.getpid())
-    # Get the dispa tcher to register handlers
+
+    # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
+    # main conversation handler
     conv1 = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
@@ -350,6 +348,7 @@ if __name__ == '__main__':
     )
     dp.add_handler(conv1)
 
+    # Fb conversaton handler
     conv2 = ConversationHandler(
         entry_points=[CommandHandler('fb', fbstart)],
         states={
@@ -359,6 +358,7 @@ if __name__ == '__main__':
     )
     dp.add_handler(conv2)
 
+    # Command handlersfor restaurants
     fz = []
     for x in f2zer.keys():
         fz.append(x)
@@ -367,6 +367,7 @@ if __name__ == '__main__':
     for x in s0dexo.keys():
         sx.append(x)
     dp.add_handler(CommandHandler(sx, sodexo))
+
     @restricted
     def stop(update, context):
         update.message.reply_text("Shutting down")
@@ -374,11 +375,12 @@ if __name__ == '__main__':
         sys.exit()
 
     dp.add_handler(CommandHandler('stop', stop))
-    dp.add_handler(CommandHandler('fb', feedback))
+    #dp.add_handler(CommandHandler('fb', feedback))
     #dp.add_handler(CallbackQueryHandler(button,pattern='^@'))
     dp.add_handler(CommandHandler('help', help))
     dp.add_handler(InlineQueryHandler(inlinequery))
 
+    @restricted
     def stop_and_restart():
         """Gracefully stop the Updater and replace the current process with a new one"""
         updater.stop()
