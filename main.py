@@ -140,8 +140,8 @@ def load_sodexo(key, lan):
         lt = fixit.sodexo(key)
         msg += '%s%s\n' % (lunch[lan],lt)
         ti = 'title_' + lan
-        for f in data:
-            msg+="<b>%s</b>\n" % f["category"]
+        for f in data.values():
+            msg+="<b>%s</b>\n" % f['category']
             msg+="\t\t\t%s\n" % f[ti]
     else:
         msg = '%s\n' % sodexo[key][0]
