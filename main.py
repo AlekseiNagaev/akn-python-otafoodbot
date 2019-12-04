@@ -142,7 +142,7 @@ def load_sodexo(key, lan):
         ti = 'title_' + lan
         for f in data.values():
             msg+="<b>%s</b>\n" % f['category']
-            if f[ti] is None:
+            if f[ti] == '':
                 msg+="\t\t\t%s\n" % f['title_fi']
             else:
                 msg+="\t\t\t%s\n" % f[ti]
