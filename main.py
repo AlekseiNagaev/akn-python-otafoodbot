@@ -239,7 +239,7 @@ def result(update, context):
     #print(msg)
     btns = []
     s = btnm[lan]
-    btnb = InlineKeyboardButton(s,callback_data=key)
+    btnb = InlineKeyboardButton(s,callback_data=lan)
     btns.append([btnb])
     reply_markup = InlineKeyboardMarkup(btns)
     bot.edit_message_text(
