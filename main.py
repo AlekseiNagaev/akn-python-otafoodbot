@@ -234,7 +234,7 @@ def result(update, context):
     elif key in s0dexo.keys():
         msg = load_sodexo(key,lan)
     else:
-        msg = []
+        msg = 'Bot was updated, make sure this conversation is up to date!'
     #print('Prices: ' + data['MenusForDays'][0]['SetMenus'][i3]['Price'])
     #print(msg)
     btns = []
