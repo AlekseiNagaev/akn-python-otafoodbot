@@ -103,7 +103,7 @@ def load_fazer(key,lan):
     rq = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     with urlopen(rq) as u:
         data = json.loads(u.read().decode())
-    if data['MenusForDays'] is None:
+    if data['MenusForDays'] == []:
         msg = '%s\n' % f2zer[key]
         msg += '%s\n' % closed[lan]
     else:
