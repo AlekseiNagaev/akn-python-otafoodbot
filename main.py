@@ -103,24 +103,27 @@ def load_fazer(key,lan):
     rq = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     with urlopen(rq) as u:
         data = json.loads(u.read().decode())
-
-    msg = '<a href="%s">%s</a>\n' % (data['RestaurantUrl'],data["RestaurantName"])
-    data = data['MenusForDays'][0]
-    d = datetime.datetime.strptime(data['Date'],'%Y-%m-%dT%H:%M:%S%z')
-    d2 = d.strftime('%d %b %Y')
-    msg += '%s\n' % d2
-    lt = data['LunchTime']
-    if lt is None or lt == 'Closed' or lt == 'Suljettu':
+    if data['MenusForDays'] is None:
+        msg = '%s\n' % f2zer[key]
         msg += '%s\n' % closed[lan]
-    elif data['SetMenus'] == []:
-        msg += '%s/%s\n' % (closed[lan], 'not available')
     else:
-        msg += '%s%s\n' % (lunch[lan],lt)
-        data = fixit.fazer(key, data, lan)
-        for x in data['SetMenus']:
-            msg+="<b>%s</b>\n" % x["Name"]
-            for y in x['Components']:
-                msg+="\t\t\t%s\n" % y
+        msg = '<a href="%s">%s</a>\n' % (data['RestaurantUrl'],data["RestaurantName"])
+        data = data['MenusForDays'][0]
+        d = datetime.datetime.strptime(data['Date'],'%Y-%m-%dT%H:%M:%S%z')
+        d2 = d.strftime('%d %b %Y')
+        msg += '%s\n' % d2
+        lt = data['LunchTime']
+        if lt is None or lt == 'Closed' or lt == 'Suljettu':
+            msg += '%s\n' % closed[lan]
+        elif data['SetMenus'] == []:
+            msg += '%s/%s\n' % (closed[lan], 'not available')
+        else:
+            msg += '%s%s\n' % (lunch[lan],lt)
+            data = fixit.fazer(key, data, lan)
+            for x in data['SetMenus']:
+                msg+="<b>%s</b>\n" % x["Name"]
+                for y in x['Components']:
+                    msg+="\t\t\t%s\n" % y
     return msg
 
 def load_sodexo(key, lan):
