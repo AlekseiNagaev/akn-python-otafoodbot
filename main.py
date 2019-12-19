@@ -104,7 +104,7 @@ def load_fazer(key,lan):
     with urlopen(rq) as u:
         data = json.loads(u.read().decode())
     if data['MenusForDays'] == []:
-        msg = '%s\n' % f2zer[key]
+        msg = '%s\n' % f2zer[key][0]
         msg += '%s\n' % closed[lan]
     else:
         msg = '<a href="%s">%s</a>\n' % (data['RestaurantUrl'],data["RestaurantName"])
