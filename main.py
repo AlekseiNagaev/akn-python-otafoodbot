@@ -15,7 +15,7 @@ from telegram import ChatAction, ParseMode
 from telegram.ext import Updater, Filters
 from telegram.ext import CommandHandler, CallbackQueryHandler, ConversationHandler, InlineQueryHandler, MessageHandler
 from telegram.ext import PicklePersistence
-from telegram.utils.helpers import escape_markdown
+#from telegram.utils.helpers import escape_markdown
 
 import datetime
 from urllib.request import Request, urlopen
@@ -31,9 +31,8 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-
 ADMINS = os.environ.get('ADMINS')
-ADMINS = x = ast.literal_eval(ADMINS)
+ADMINS = ast.literal_eval(ADMINS)
 
 url0 = 'https://www.fazerfoodco.fi/modules/json/json/Index?costNumber='
 l0 = '&language='
@@ -113,6 +112,8 @@ def load_fazer(key,lan):
     lt = data['LunchTime']
     if lt is None or lt == 'Closed' or lt == 'Suljettu':
         msg += '%s\n' % closed[lan]
+    elif data['SetMenus'] == []:
+        msg += '%s/%s\n' % (closed[lan], 'not available')
     else:
         msg += '%s%s\n' % (lunch[lan],lt)
         data = fixit.fazer(key, data, lan)
@@ -332,7 +333,7 @@ if __name__ == '__main__':
     #main()
     TOKEN = os.environ.get('TOKEN')
     NAME = os.environ.get('NAME')
-    PORT = PORT = int(os.environ.get('PORT', '8443'))
+    PORT = int(os.environ.get('PORT', '8443'))
     ISSERVER = int(os.environ.get('ISSERVER', '0'))
     persisto = PicklePersistence(filename='persisto')
     updater = Updater(TOKEN,persistence=persisto,use_context=True)
@@ -363,7 +364,7 @@ if __name__ == '__main__':
     )
     dp.add_handler(conv2)
 
-    # Command handlersfor restaurants
+    # Command handlers for restaurants
     fz = []
     for x in f2zer.keys():
         fz.append(x)
@@ -380,7 +381,6 @@ if __name__ == '__main__':
         sys.exit()
 
     dp.add_handler(CommandHandler('stop', stop))
-    #dp.add_handler(CommandHandler('fb', feedback))
     #dp.add_handler(CallbackQueryHandler(button,pattern='^@'))
     dp.add_handler(CommandHandler('help', help))
     dp.add_handler(InlineQueryHandler(inlinequery))

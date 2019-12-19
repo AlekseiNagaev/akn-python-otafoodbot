@@ -41,12 +41,16 @@ def silinteri(data, lan):
     return data
 
 def tuas(data, lan):
-    data['SetMenus'][0]['Name'] = 'Vegetarian Lunch'
-    data['SetMenus'][1]['Name'] = 'Lunch 1'
-    data['SetMenus'][2]['Name'] = 'Lunch 2'
-    data['SetMenus'][3]['Name'] = 'Fresh Bufee'
-    data['SetMenus'][4]['Name'] = 'Special'
-    data['SetMenus'][5]['Name'] = 'Dessert'
+    rpl = {
+            0: 'Vegetarian Lunch',
+            1: 'Lunch 1',
+            2: 'Lunch 2',
+            3: 'Fresh Bufee',
+            4: 'Special',
+            5: 'Dessert'
+    }
+    for i in range(len(data['SetMenus']))
+    data['SetMenus'][i]['Name'] = rpl[i]
     data = del_n(data)
     return data
 
