@@ -49,8 +49,8 @@ def tuas(data, lan):
             4: 'Special',
             5: 'Dessert'
     }
-    for i in range(len(data['SetMenus']))
-    data['SetMenus'][i]['Name'] = rpl[i]
+    for i in range(len(data['SetMenus'])):
+        data['SetMenus'][i]['Name'] = rpl[i]
     data = del_n(data)
     return data
 
