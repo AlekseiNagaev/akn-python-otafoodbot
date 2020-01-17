@@ -151,7 +151,7 @@ def load_sodexo(key, lan):
             else:
                 msg+="\t\t\t%s\n" % f[ti]
     else:
-        msg = '%s\n' % sodexo[key][0]
+        msg = '%s\n' % s0dexo[key][0]
         msg += '%s\n' % closed[lan]
     return msg
 # Bot commands
