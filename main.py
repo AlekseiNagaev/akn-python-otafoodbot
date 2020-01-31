@@ -152,7 +152,7 @@ def load_fazer(key,lan):
 
 def load_sodexo(key, lan):
     z = datetime.datetime.today().weekday()
-    if z in range(4):
+    if z in range(5):
         x = datetime.datetime.today()
         x1 = x.strftime('%Y-%m-%d')
         url = s0dexo[key][1] + x1
