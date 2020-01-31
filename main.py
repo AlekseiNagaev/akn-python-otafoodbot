@@ -17,6 +17,8 @@ from telegram.ext import CommandHandler, CallbackQueryHandler, ConversationHandl
 from telegram.ext import PicklePersistence
 #from telegram.utils.helpers import escape_markdown
 
+import bs4
+import requests as rq
 import datetime
 from urllib.request import Request, urlopen
 import json
@@ -68,7 +70,8 @@ btnm = {
         'fi': '< Takaisin'
         }
 #ch1m = {}
-
+sub = []
+fidays = []
 FIRST, SECOND = range(2)
 FB = 1
 
@@ -98,6 +101,27 @@ def typing(func):
     return command_func
 
 # Company-specific functions
+def get_sub():
+    global sub
+    global fidays
+    lnk = 'http://subway.fi/mobile/paivan-subit'
+    w = rq.get(lnk).content
+    x = bs4.BeautifulSoup(w,'html.parser')
+    l = []
+    for s in x.ul.stripped_strings:
+        l.append(s)
+    sub = l[1::2]
+    fidays = l[::2]
+
+def load_subway(key,lan):
+    z = datetime.datetime.today().weekday()
+    if lan == 'en':
+        day = datetime.datetime.today().strftime('%A')
+    else:
+        day = fidays[z]
+    msg = '<b>%s</b>:\n%s' % (day,sub[z])
+    return msg
+
 def load_fazer(key,lan):
     url = f2zer[key][1] + lan
     rq = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -197,16 +221,23 @@ def choice1(update, context):
         x = [*f2zer.keys()]
         y = [*s0dexo.keys()]
         n = min(len(x),len(y))
+
         for i in range(n):
             s1 = x[i]
             s2 = y[i]
             btn1 = InlineKeyboardButton(f2zer[s1][0], callback_data=s1)
             btn2 = InlineKeyboardButton(s0dexo[s2][0], callback_data=s2)
             btns.append([btn1,btn2])
+
         for i in range(n,len(x)):
             s = x[i]
             btn = InlineKeyboardButton(f2zer[s][0], callback_data=s)
             btns.append([btn])
+
+        s = 'Subway\u2122'
+        btn = InlineKeyboardButton(s, callback_data='sub')
+        btns.append([btn])
+
         reply_markup = InlineKeyboardMarkup(btns)
         bot.edit_message_text(
             chat_id=query.message.chat_id,
@@ -237,6 +268,8 @@ def result(update, context):
         msg = load_fazer(key,lan)
     elif key in s0dexo.keys():
         msg = load_sodexo(key,lan)
+    elif key=='sub':
+        msg = load_subway(key,lan)
     else:
         msg = 'Bot was updated, make sure this conversation is up to date!'
     #print('Prices: ' + data['MenusForDays'][0]['SetMenus'][i3]['Price'])
@@ -330,10 +363,6 @@ def sodexo(update, context):
     update.message.reply_text(msg,parse_mode=ParseMode.HTML,disable_web_page_preview=1)
 
 def main():
-    return 1
-
-if __name__ == '__main__':
-    #main()
     TOKEN = os.environ.get('TOKEN')
     NAME = os.environ.get('NAME')
     PORT = int(os.environ.get('PORT', '8443'))
@@ -415,3 +444,7 @@ if __name__ == '__main__':
         updater.start_polling()
 
     updater.idle()
+
+if __name__ == '__main__':
+    get_sub()
+    main()
