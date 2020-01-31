@@ -17,7 +17,7 @@ from telegram.ext import CommandHandler, CallbackQueryHandler, ConversationHandl
 from telegram.ext import PicklePersistence
 #from telegram.utils.helpers import escape_markdown
 
-import bs4
+from bs4 import BeautifulSoup as bs
 import requests as rq
 import datetime
 from urllib.request import Request, urlopen
@@ -106,20 +106,44 @@ def get_sub():
     global fidays
     lnk = 'http://subway.fi/mobile/paivan-subit'
     w = rq.get(lnk).content
-    x = bs4.BeautifulSoup(w,'html.parser')
+    x = bs(w,'html.parser')
     l = []
     for s in x.ul.stripped_strings:
         l.append(s)
     sub = l[1::2]
     fidays = l[::2]
 
-def load_subway(key,lan):
-    z = datetime.datetime.today().weekday()
-    if lan == 'en':
-        day = datetime.datetime.today().strftime('%A')
+def load_kipsari(key,lan):
+    lnk = 'http://www.kipsari.com'
+    w = rq.get(lnk).content
+    g = bs(w,'html.parser')
+    z = g.find_all('div', 'kipsari-menu-open-container')
+
+    l = []
+    for f in z:
+        s = f.stripped_strings
+        for q in s:
+            l.append(q)
+
+    if key == 'ks':
+        li = l[:29]
     else:
-        day = fidays[z]
-    msg = '<b>%s</b>:\n%s' % (day,sub[z])
+        li = l[30:]
+        del li[5:7]
+
+    if lan == 'en':
+        k = 1
+    else:
+        k = 0
+
+    msg = '<a href="%s">%s</a>\n' % (lnk,li[0])
+    msg+= '%s\n' % li[24]
+
+    t = datetime.datetime.today().weekday()
+    msg+= '%s\n' % li[k + 3 + 2*t]
+    msg+= '%s\n' % li[k + 13]
+    msg+= '%s\n' % li[k + 15]
+
     return msg
 
 def load_fazer(key,lan):
@@ -178,6 +202,15 @@ def load_sodexo(key, lan):
         msg = '%s\n' % s0dexo[key][0]
         msg += '%s\n' % closed[lan]
     return msg
+
+def load_subway(key,lan):
+    z = datetime.datetime.today().weekday()
+    if lan == 'en':
+        day = datetime.datetime.today().strftime('%A')
+    else:
+        day = fidays[z]
+    msg = '<b>%s</b>:\n%s' % (day,sub[z])
+    return msg
 # Bot commands
 # CHOICE conversaton
 #@restricted
@@ -229,13 +262,16 @@ def choice1(update, context):
             btn2 = InlineKeyboardButton(s0dexo[s2][0], callback_data=s2)
             btns.append([btn1,btn2])
 
+        btn1 = InlineKeyboardButton('Kipsari Studio', callback_data='ks')
+        btn2 = InlineKeyboardButton('Kipsari Väre', callback_data='kv')
+        btns.append([btn1,btn2])
+
         for i in range(n,len(x)):
             s = x[i]
             btn = InlineKeyboardButton(f2zer[s][0], callback_data=s)
             btns.append([btn])
 
-        s = 'Subway\u2122'
-        btn = InlineKeyboardButton(s, callback_data='sub')
+        btn = InlineKeyboardButton('Subway\u2122', callback_data='sub')
         btns.append([btn])
 
         reply_markup = InlineKeyboardMarkup(btns)
@@ -268,6 +304,8 @@ def result(update, context):
         msg = load_fazer(key,lan)
     elif key in s0dexo.keys():
         msg = load_sodexo(key,lan)
+    elif re.match('k[s,v]',key):
+        msg = load_kipsari(key,lan)
     elif key=='sub':
         msg = load_subway(key,lan)
     else:
