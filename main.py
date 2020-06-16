@@ -175,33 +175,40 @@ def load_fazer(key,lan):
     return msg
 
 def load_sodexo(key, lan):
-    z = datetime.datetime.today().weekday()
-    if z in range(5):
-        x = datetime.datetime.today()
-        x1 = x.strftime('%Y-%m-%d')
-        url = s0dexo[key][1] + x1
-        rq = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urlopen(rq) as u:
-            data = json.loads(u.read().decode())
+    try:
+		z = datetime.datetime.today().weekday()
+		if z in range(5):
+			raise Exception('Bad day')
+		
+		x = datetime.datetime.today()
+		x1 = x.strftime('%Y-%m-%d')
+		url = s0dexo[key][1] + x1
+		rq = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+		with urlopen(rq) as u:
+			data = json.loads(u.read().decode())
 
-        meta = data['meta']
-        msg = '<a href="%s">%s</a>\n' % (meta['ref_url'],meta["ref_title"])
-        data = data['courses']
-        y = x.strftime('%d %b %Y')
-        msg += '%s\n' % y
-        lt = fixit.sodexo(key)
-        msg += '%s%s\n' % (lunch[lan],lt)
-        ti = 'title_' + lan
-        for f in data.values():
-            msg+="<b>%s</b>\n" % f['category']
-            if f[ti] == '':
-                msg+="\t\t\t%s\n" % f['title_fi']
-            else:
-                msg+="\t\t\t%s\n" % f[ti]
-    else:
-        msg = '%s\n' % s0dexo[key][0]
-        msg += '%s\n' % closed[lan]
-    return msg
+		meta = data['meta']
+		msg = '<a href="%s">%s</a>\n' % (meta['ref_url'],meta["ref_title"])
+		data = data['courses']
+		if data is None:
+			raise Exception('No data')
+		
+		y = x.strftime('%d %b %Y')
+		msg += '%s\n' % y
+		lt = fixit.sodexo(key)
+		msg += '%s%s\n' % (lunch[lan],lt)
+		ti = 'title_' + lan
+		for f in data.values():
+			msg+="<b>%s</b>\n" % f['category']
+			if f[ti] == '':
+				msg+="\t\t\t%s\n" % f['title_fi']
+			else:
+				msg+="\t\t\t%s\n" % f[ti]
+	except:
+		msg = '%s\n' % s0dexo[key][0]
+		msg += '%s\n' % closed[lan]
+  
+  return msg
 
 def load_subway(key,lan):
     z = datetime.datetime.today().weekday()
