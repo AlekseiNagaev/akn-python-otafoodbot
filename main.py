@@ -175,7 +175,7 @@ def load_fazer(key,lan):
     return msg
 
 def load_sodexo(key, lan):
-    try:
+	try:
 		z = datetime.datetime.today().weekday()
 		if z in range(5):
 			raise Exception('Bad day')
@@ -207,8 +207,8 @@ def load_sodexo(key, lan):
 	except:
 		msg = '%s\n' % s0dexo[key][0]
 		msg += '%s\n' % closed[lan]
-  
-  return msg
+    
+	return msg
 
 def load_subway(key,lan):
     z = datetime.datetime.today().weekday()
